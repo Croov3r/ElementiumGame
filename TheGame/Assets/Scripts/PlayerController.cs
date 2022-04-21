@@ -51,11 +51,14 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask WhatIsGround;
     [SerializeField] private Transform GroundCheck;
     [SerializeField] private Transform CeilingCheck;
+    [SerializeField] private Transform LeftCheck;
+    [SerializeField] private Transform RightCheck;
     [SerializeField] private Collider2D CrouchDisableCollider;
     Rigidbody2D rigb;
 
     const float GroundedRadius = 0.1f;
-    const float CeilingRadius = .2f;
+    const float CeilingRadius = .01f;
+    const float SideRadius = .01f;
 
 
 
@@ -151,6 +154,15 @@ public class PlayerController : MonoBehaviour
             {
                 speedVector = new Vector3(currentMaxSpeed,0,0);
             }
+        }
+
+        if(Physics2D.OverlapCircle(LeftCheck.position, SideRadius, WhatIsGround) && speedVector.x < 0)
+        {
+            speedVector = Vector3.zero;
+        }
+        if (Physics2D.OverlapCircle(RightCheck.position, SideRadius, WhatIsGround) && speedVector.x > 0)
+        {
+            speedVector = Vector3.zero;
         }
 
         transform.position += runningSpeed * speedVector * Time.fixedDeltaTime;
