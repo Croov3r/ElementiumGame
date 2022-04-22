@@ -7,7 +7,8 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Jumping")]
 
-    public float jumpHeight;
+    public float lowJumpHeight;
+    public float highJumpHeight;
     public float highTime;
     public float lowTime;
     public int overGroundJumpingFrames;
@@ -18,6 +19,7 @@ public class PlayerController : MonoBehaviour
 
     int overGroundJumpingTimer = 0;
     int afterGroundJumpingTimer = 0;
+    public float highJumpTimer = 0;
 
     [Header("Running")]
     [Space]
@@ -79,21 +81,21 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        if ((!grounded) && (!rememberGrounded))
+        if ((!grounded) && (!rememberGrounded) && (highJumpTimer > highJumpHeight-lowJumpHeight))
         {
             return;
         }
-        rigb.velocity = new Vector2(0f, 2*jumpHeight/highTime);
+        rigb.velocity = new Vector2(0f, 2* lowJumpHeight / highTime);
     }
 
     void GravityController()
     {
         if (rigb.velocity.y <= 0)
         {
-            rigb.gravityScale = (1 / 9.8f) * 2 * jumpHeight / (lowTime * lowTime);
+            rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (lowTime * lowTime);
             return;
         }
-        rigb.gravityScale = (1 / 9.8f) * 2 * jumpHeight / (highTime * highTime);
+        rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (highTime * highTime);
     }
 
     void JumpingTimer()
@@ -193,11 +195,19 @@ public class PlayerController : MonoBehaviour
         {
             afterGroundJumpingTimer = afterGroundJumpingFrames;
         }
+        if (grounded)
+        {
+            highJumpTimer = 0f;
+        }
+        else
+        {
+            highJumpTimer += 2 * lowJumpHeight / highTime * Time.deltaTime;
+        }
     }
 
     void Crouching(bool crouch)
     {
-        if (!crouch)
+        if (wasCrouching &&!crouch)
             if (Physics2D.OverlapCircle(CeilingCheck.position, CeilingRadius, WhatIsGround))
             {
                 crouch = true;
@@ -237,8 +247,16 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown("space"))
         {
-            Jump();
             overGroundJumpingTimer = overGroundJumpingFrames;
+        }
+
+        if (Input.GetKey("space"))
+        {
+            Jump();
+        }
+        else if (!grounded)
+        {
+            highJumpTimer = 100f;
         }
         if (Input.GetKey("s"))
         {

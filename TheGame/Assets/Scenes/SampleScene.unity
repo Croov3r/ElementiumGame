@@ -308,7 +308,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 453612177}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -6.65, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 829253809}
@@ -500,7 +500,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 7.194682
+  orthographic size: 12.511382
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -524,7 +524,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 5.76, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -594,11 +594,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a7382e06e30ed245b4112999549ed20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jumpHeight: 5
-  highTime: 0.4
-  lowTime: 0.3
+  lowJumpHeight: 2
+  highJumpHeight: 5
+  highTime: 0.25
+  lowTime: 0.25
   overGroundJumpingFrames: 3
   afterGroundJumpingFrames: 5
+  highJumpTimer: 0
   runningSpeed: 3.5
   runningAccTime: 0.2
   runningDecTime: 0.2
