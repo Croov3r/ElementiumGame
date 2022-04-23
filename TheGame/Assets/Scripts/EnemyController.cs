@@ -3,23 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class PlayerController : MonoBehaviour
+public class EnemyController : MonoBehaviour
 {
-    [Header("Jumping")]
+    [Header("Characters")]
+    public GameObject Player;
+    public float lifes;
 
-    public float lowJumpHeight;
-    public float highJumpHeight;
-    public float highTime;
-    public float lowTime;
-    public int overGroundJumpingFrames;
-    public int afterGroundJumpingFrames;
+    [Header("Jumping")]
+    [Space]
+    public float normalHighTime;
+    public float normalLowTime;
+    public float normalJumpHeight;
+
+    float jumpHeight;
+    float highTime;
+    float lowTime;
 
     bool grounded;
-    bool rememberGrounded;
 
-    int overGroundJumpingTimer = 0;
-    int afterGroundJumpingTimer = 0;
-    float highJumpTimer = 0;
+
 
     [Header("Running")]
     [Space]
@@ -34,18 +36,26 @@ public class PlayerController : MonoBehaviour
     Vector3 runningDecVector;
     Vector3 speedVector;
     Vector3 runningAccVector;
-    
+
+    float walkingTimer;
+    bool walkingTimerEnabled = false;
 
     [Header("Events")]
     [Space]
 
     public UnityEvent OnLandEvent;
     [System.Serializable]
-    public class BoolEvent : UnityEvent<bool>{}
+    public class BoolEvent : UnityEvent<bool> { }
 
     public BoolEvent OnCrouchEvent;
     private bool wasCrouching = false;
     private bool isCrouching = false;
+
+    private bool keyA = false;
+    private bool keyD = false;
+    private bool keyS = false;
+
+    private Collider2D oldCollider = null;
 
     [Header("Collision")]
     [Space]
@@ -79,49 +89,22 @@ public class PlayerController : MonoBehaviour
             OnCrouchEvent = new BoolEvent();
     }
 
-    void Jump()
-    {
-        if ((!grounded) && (!rememberGrounded) && (highJumpTimer > highJumpHeight-lowJumpHeight))
-        {
-            return;
-        }
-        rigb.velocity = new Vector2(0f, 2* lowJumpHeight / highTime);
-    }
-
     void GravityController()
     {
         if (rigb.velocity.y <= 0)
         {
-            rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (lowTime * lowTime);
+            rigb.gravityScale = (1 / 9.8f) * 2 * jumpHeight / (lowTime * lowTime);
             return;
         }
-        rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (highTime * highTime);
-    }
-
-    void JumpingTimer()
-    {
-        if (overGroundJumpingTimer > 0)
-        {
-            overGroundJumpingTimer--;
-        }
-
-        if (afterGroundJumpingTimer > 0)
-        {
-            rememberGrounded = true;
-            afterGroundJumpingTimer--;
-        }
-        else
-        {
-            rememberGrounded = false;
-        }
+        rigb.gravityScale = (1 / 9.8f) * 2 * jumpHeight / (highTime * highTime);
     }
 
     void Movement()
     {
-        rigb.velocity = new Vector3(0, rigb.velocity.y,0);
-        if (Input.GetKey("a") == Input.GetKey("d"))
+        rigb.velocity = new Vector3(0, rigb.velocity.y, 0);
+        if (keyA == keyD)
         {
-            
+
             if (Mathf.Abs(speedVector.x) < runningDecVector.x * Time.fixedDeltaTime)
             {
                 speedVector = Vector3.zero;
@@ -135,7 +118,7 @@ public class PlayerController : MonoBehaviour
                 speedVector -= runningDecVector * Time.fixedDeltaTime;
             }
         }
-        else if (Input.GetKey("a"))
+        else if (keyA)
         {
             if (speedVector.x > -currentMaxSpeed)
             {
@@ -146,7 +129,7 @@ public class PlayerController : MonoBehaviour
                 speedVector = new Vector3(-currentMaxSpeed, 0, 0);
             }
         }
-        else if (Input.GetKey("d"))
+        else if (keyD)
         {
             if (speedVector.x < currentMaxSpeed)
             {
@@ -154,11 +137,11 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                speedVector = new Vector3(currentMaxSpeed,0,0);
+                speedVector = new Vector3(currentMaxSpeed, 0, 0);
             }
         }
 
-        if(Physics2D.OverlapCircle(LeftCheck.position, SideRadius, WhatIsGround) && speedVector.x < 0)
+        if (Physics2D.OverlapCircle(LeftCheck.position, SideRadius, WhatIsGround) && speedVector.x < 0)
         {
             speedVector = Vector3.zero;
         }
@@ -182,32 +165,17 @@ public class PlayerController : MonoBehaviour
                 grounded = true;
                 if (!wasGrounded)
                 {
-                    if (overGroundJumpingTimer > 0)
-                    {
-                        Jump();
-                    }
                     OnLandEvent.Invoke();
                 }
-                    
+                highTime = normalHighTime;
+                lowTime = normalLowTime;
             }
-        }
-        if (wasGrounded && (!grounded) && (rigb.velocity.y <= 0))
-        {
-            afterGroundJumpingTimer = afterGroundJumpingFrames;
-        }
-        if (grounded)
-        {
-            highJumpTimer = 0f;
-        }
-        else
-        {
-            highJumpTimer += 2 * lowJumpHeight / highTime * Time.deltaTime;
         }
     }
 
     void Crouching(bool crouch)
     {
-        if (wasCrouching &&!crouch)
+        if (wasCrouching && !crouch)
             if (Physics2D.OverlapCircle(CeilingCheck.position, CeilingRadius, WhatIsGround))
             {
                 crouch = true;
@@ -233,37 +201,73 @@ public class PlayerController : MonoBehaviour
             }
             CrouchDisableCollider.enabled = true;
         }
-        
+
     }
+
+
+    //
+
+
+    public void Jump(float height = -1f)
+    {
+        if (height == -1)
+        {
+            height = normalJumpHeight;
+        }
+
+        jumpHeight = height;
+        if (!grounded)
+        {
+            return;
+        }
+
+        highTime = normalHighTime * Mathf.Sqrt(height) / Mathf.Sqrt(5);
+        lowTime = normalLowTime * Mathf.Sqrt(height) / Mathf.Sqrt(5);
+
+        rigb.velocity = new Vector2(0f, 2 * height / highTime);
+    }
+    
+    public void Walk(float x, float duration = -1f)
+    {
+        keyA = (x < 0f);
+        keyD = (x > 0f);
+        if (duration == -1f)
+        {
+            walkingTimerEnabled = false;
+            return;
+        }
+        walkingTimerEnabled = true;
+        walkingTimer = duration;
+    }
+
+    public void Crouch(bool crouch)
+    {
+        isCrouching = crouch;
+    }
+
+    public void TakeDamage(float damage)
+    {
+        lifes -= damage;
+    }
+
+    //
+
 
     void Start()
     {
+        Player = FindObjectOfType<PlayerController>().gameObject;
+        jumpHeight = 5;
         runningAccVector = new Vector3(2 / (runningAccTime * runningAccTime), 0, 0);
         runningDecVector = new Vector3(2 / (runningDecTime * runningDecTime), 0, 0);
         currentMaxSpeed = runningSpeed;
+
+        highTime = normalHighTime;
+        lowTime = normalLowTime;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown("space"))
-        {
-            Jump();
-            overGroundJumpingTimer = overGroundJumpingFrames;
-        }
-
-        if (Input.GetKey("space"))
-        {
-            if (!grounded)
-            {
-                Jump();
-            }
-        }
-
-        else if (!grounded)
-        {
-            highJumpTimer = 100f;
-        }
-        if (Input.GetKey("s"))
+        if (keyS)
         {
             isCrouching = true;
         }
@@ -271,15 +275,55 @@ public class PlayerController : MonoBehaviour
         {
             isCrouching = false;
         }
+
+        if (walkingTimerEnabled)
+        {
+            if (walkingTimer > 0)
+            {
+                walkingTimer -= Time.deltaTime;
+            }
+            else
+            {
+                keyA = false;
+                keyD = false;
+            }
+        }
     }
 
     private void FixedUpdate()
     {
         GravityController();
-        JumpingTimer();
         GroundTouching();
         Movement();
         Crouching(isCrouching);
     }
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (oldCollider == other)
+        {
+            return;
+        }
+
+        var Tags = other.gameObject.GetComponent<CustomTag>();
+
+        if (Tags == null)
+        {
+            return;
+        }
+
+        if (Tags.HasTag("Spell"))
+        {
+            SpellScript ss = other.gameObject.GetComponent<SpellScript>();
+            TakeDamage(ss.damage);
+
+        }
+
+        oldCollider = other;
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        oldCollider = null;
+    }
 }
