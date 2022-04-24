@@ -122,7 +122,12 @@ MonoBehaviour:
   lowTime: 0.25
   overGroundJumpingFrames: 6
   afterGroundJumpingFrames: 5
-  runningSpeed: 3.5
+  beforeWallJumpingFrames: 3
+  afterWallJumpingFrames: 10
+  wallJumpSpeed: 4
+  wallJumpNoMoveTime: 0.2
+  wallFriction: 10
+  runningSpeed: 3
   runningAccTime: 0.2
   runningDecTime: 0.2
   crouchingSpeed: 1

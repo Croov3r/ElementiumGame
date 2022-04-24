@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.Events;
 
 public class SpellScript : MonoBehaviour
 {
+    public Sprite sprite;
     public float damage;
     public bool isDragable = true;
     enum Directions

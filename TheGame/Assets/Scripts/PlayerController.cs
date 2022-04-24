@@ -13,13 +13,28 @@ public class PlayerController : MonoBehaviour
     public float lowTime;
     public int overGroundJumpingFrames;
     public int afterGroundJumpingFrames;
+    public int beforeWallJumpingFrames;
+    public int afterWallJumpingFrames;
+    public float wallJumpSpeed;
+    public float wallJumpNoMoveTime;
+    public float wallFriction;
+
+    float gravityScaler = 1f;
 
     bool grounded;
     bool rememberGrounded;
 
     int overGroundJumpingTimer = 0;
     int afterGroundJumpingTimer = 0;
+    int beforeWallJumpingTimer = 0;
     float highJumpTimer = 0;
+
+    bool touchingRightWall = false;
+    bool touchingLeftWall = false;
+    bool rememberOrientation = true;
+    int afterWallJumpingTimer;
+    float noMoveTimer;
+
 
     [Header("Running")]
     [Space]
@@ -30,10 +45,12 @@ public class PlayerController : MonoBehaviour
 
     public float crouchingSpeed;
 
+    bool facingRight = true;
     float currentMaxSpeed;
     Vector3 runningDecVector;
     Vector3 speedVector;
     Vector3 runningAccVector;
+    bool canMove = true;
     
 
     [Header("Events")]
@@ -59,8 +76,8 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rigb;
 
     const float GroundedRadius = 0.1f;
-    const float CeilingRadius = .01f;
-    const float SideRadius = .01f;
+    const float CeilingRadius = 0.05f;
+    const float SideRadius = 0.05f;
 
 
 
@@ -79,23 +96,56 @@ public class PlayerController : MonoBehaviour
             OnCrouchEvent = new BoolEvent();
     }
 
+    //jumping
+
     void Jump()
     {
-        if ((!grounded) && (!rememberGrounded) && (highJumpTimer > highJumpHeight-lowJumpHeight))
+        if ((!grounded) && (!rememberGrounded) && (highJumpTimer > highJumpHeight-lowJumpHeight) && !(touchingLeftWall || touchingRightWall))
         {
             return;
         }
+        if (!isCrouching)
+        {
+            if (touchingLeftWall)
+            {
+                return;
+            }
+            if (touchingRightWall)
+            {
+                return;
+            }
+        }
+
         rigb.velocity = new Vector2(0f, 2* lowJumpHeight / highTime);
     }
 
-    void GravityController()
+    void WallJump()
+    {
+        if (grounded || (!(touchingLeftWall || touchingRightWall) && (afterWallJumpingTimer <= 0)))
+        {
+            return;
+        }
+
+        noMoveTimer = wallJumpNoMoveTime;
+        if (rememberOrientation)
+        {
+            speedVector = new Vector3(-wallJumpSpeed, speedVector.y, 0);
+        }
+        else
+        {
+            speedVector = new Vector3(wallJumpSpeed, speedVector.y, 0);
+        }
+        rigb.velocity = new Vector2(0f, 2 * lowJumpHeight / highTime);
+    }
+
+    void GravityController(float scale = 1f)
     {
         if (rigb.velocity.y <= 0)
         {
-            rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (lowTime * lowTime);
+            rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (lowTime * lowTime) * scale;
             return;
         }
-        rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (highTime * highTime);
+        rigb.gravityScale = (1 / 9.8f) * 2 * lowJumpHeight / (highTime * highTime) * scale;
     }
 
     void JumpingTimer()
@@ -103,6 +153,16 @@ public class PlayerController : MonoBehaviour
         if (overGroundJumpingTimer > 0)
         {
             overGroundJumpingTimer--;
+        }
+
+        if (beforeWallJumpingTimer > 0)
+        {
+            beforeWallJumpingTimer--;
+        }
+
+        if (afterWallJumpingTimer > 0)
+        {
+            afterWallJumpingTimer--;
         }
 
         if (afterGroundJumpingTimer > 0)
@@ -114,60 +174,20 @@ public class PlayerController : MonoBehaviour
         {
             rememberGrounded = false;
         }
-    }
 
-    void Movement()
-    {
-        rigb.velocity = new Vector3(0, rigb.velocity.y,0);
-        if (Input.GetKey("a") == Input.GetKey("d"))
+
+
+        if (noMoveTimer > 0)
         {
-            
-            if (Mathf.Abs(speedVector.x) < runningDecVector.x * Time.fixedDeltaTime)
-            {
-                speedVector = Vector3.zero;
-            }
-            else if (speedVector.x < 0)
-            {
-                speedVector += runningDecVector * Time.fixedDeltaTime;
-            }
-            else if (speedVector.x > 0)
-            {
-                speedVector -= runningDecVector * Time.fixedDeltaTime;
-            }
+            canMove = false;
+            noMoveTimer -= Time.deltaTime;
         }
-        else if (Input.GetKey("a"))
+        else
         {
-            if (speedVector.x > -currentMaxSpeed)
-            {
-                speedVector -= runningAccVector * Time.fixedDeltaTime;
-            }
-            else
-            {
-                speedVector = new Vector3(-currentMaxSpeed, 0, 0);
-            }
-        }
-        else if (Input.GetKey("d"))
-        {
-            if (speedVector.x < currentMaxSpeed)
-            {
-                speedVector += runningAccVector * Time.fixedDeltaTime;
-            }
-            else
-            {
-                speedVector = new Vector3(currentMaxSpeed,0,0);
-            }
+            canMove = true;
         }
 
-        if(Physics2D.OverlapCircle(LeftCheck.position, SideRadius, WhatIsGround) && speedVector.x < 0)
-        {
-            speedVector = Vector3.zero;
-        }
-        if (Physics2D.OverlapCircle(RightCheck.position, SideRadius, WhatIsGround) && speedVector.x > 0)
-        {
-            speedVector = Vector3.zero;
-        }
-
-        transform.position += runningSpeed * speedVector * Time.fixedDeltaTime;
+        
     }
 
     void GroundTouching()
@@ -188,7 +208,7 @@ public class PlayerController : MonoBehaviour
                     }
                     OnLandEvent.Invoke();
                 }
-                    
+
             }
         }
         if (wasGrounded && (!grounded) && (rigb.velocity.y <= 0))
@@ -204,6 +224,87 @@ public class PlayerController : MonoBehaviour
             highJumpTimer += 2 * lowJumpHeight / highTime * Time.deltaTime;
         }
     }
+
+    //moving
+
+    void Movement()
+    {
+        rigb.velocity = new Vector3(0, rigb.velocity.y,0);
+        if ((Input.GetKey("a") == Input.GetKey("d")) && canMove)
+        {
+
+            if (Mathf.Abs(speedVector.x) < runningDecVector.x * Time.fixedDeltaTime)
+            {
+                speedVector = Vector3.zero;
+            }
+            else if (speedVector.x < 0)
+            {
+                speedVector += runningDecVector * Time.fixedDeltaTime;
+            }
+            else if (speedVector.x > 0)
+            {
+                speedVector -= runningDecVector * Time.fixedDeltaTime;
+            }
+        }
+        else if (Input.GetKey("a") && canMove)
+        {
+            facingRight = false;
+            if (speedVector.x > -currentMaxSpeed)
+            {
+                speedVector -= runningAccVector * Time.fixedDeltaTime;
+            }
+        }
+        else if (Input.GetKey("d") && canMove)
+        {
+            facingRight = true;
+            if (speedVector.x < currentMaxSpeed)
+            {
+                speedVector += runningAccVector * Time.fixedDeltaTime;
+            }
+        }
+
+        //wall touch
+
+        bool touchLeft = (Physics2D.OverlapCircle(LeftCheck.position, SideRadius, WhatIsGround) && speedVector.x < 0);
+        bool touchRight = (Physics2D.OverlapCircle(RightCheck.position, SideRadius, WhatIsGround) && speedVector.x > 0);
+
+        if (touchLeft || touchRight)
+        {
+            if (rigb.velocity.y < 0)
+            {
+                gravityScaler = 1 / wallFriction;
+            }
+            else
+            {
+                gravityScaler = 1;
+            }
+
+            speedVector = Vector3.zero;
+            if (beforeWallJumpingTimer > 0)
+            {
+                WallJump();
+            }
+            rememberOrientation = (touchRight && !touchLeft);
+        }
+        else
+        {
+            gravityScaler = 1;
+        }
+
+        touchingLeftWall = touchLeft;
+        touchingRightWall = touchRight;
+
+        if (touchLeft || touchRight)
+        {
+            afterWallJumpingTimer = afterWallJumpingFrames;
+        }
+
+        //end
+
+        transform.position += runningSpeed * speedVector * Time.fixedDeltaTime;
+    }
+
+    //crouching
 
     void Crouching(bool crouch)
     {
@@ -236,6 +337,10 @@ public class PlayerController : MonoBehaviour
         
     }
 
+
+    ///
+
+
     void Start()
     {
         runningAccVector = new Vector3(2 / (runningAccTime * runningAccTime), 0, 0);
@@ -248,7 +353,9 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown("space"))
         {
             Jump();
+            WallJump();
             overGroundJumpingTimer = overGroundJumpingFrames;
+            beforeWallJumpingTimer = beforeWallJumpingFrames;
         }
 
         if (Input.GetKey("space"))
@@ -275,8 +382,8 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        GravityController();
         JumpingTimer();
+        GravityController(gravityScaler);
         GroundTouching();
         Movement();
         Crouching(isCrouching);

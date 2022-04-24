@@ -52,9 +52,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7984896152495403265, guid: 803558cbbea15414099f83acf5e97d3a, type: 3}
+      propertyPath: image
+      value: 
+      objectReference: {fileID: 21300000, guid: 0816943bd59b0f845a33df6c42800e97, type: 3}
+    - target: {fileID: 7984896152495403265, guid: 803558cbbea15414099f83acf5e97d3a, type: 3}
       propertyPath: damage
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7984896152495403265, guid: 803558cbbea15414099f83acf5e97d3a, type: 3}
+      propertyPath: sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0816943bd59b0f845a33df6c42800e97, type: 3}
     - target: {fileID: 7984896152495403265, guid: 803558cbbea15414099f83acf5e97d3a, type: 3}
       propertyPath: activeColor.b
       value: 0
