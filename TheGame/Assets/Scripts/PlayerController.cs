@@ -186,8 +186,6 @@ public class PlayerController : MonoBehaviour
         {
             canMove = true;
         }
-
-        
     }
 
     void GroundTouching()
@@ -333,8 +331,7 @@ public class PlayerController : MonoBehaviour
                 currentMaxSpeed = runningSpeed;
             }
             CrouchDisableCollider.enabled = true;
-        }
-        
+        } 
     }
 
 
