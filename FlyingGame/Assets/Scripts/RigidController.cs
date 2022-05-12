@@ -17,6 +17,7 @@ public class RigidController : MonoBehaviour
     public float airRotationSpeed = 10f;
 
     bool grounded;
+    bool newGrounded;
     bool rememberGrounded;
 
 
@@ -24,14 +25,17 @@ public class RigidController : MonoBehaviour
     [Space]
 
     public float runningSpeed;
+    public float airRunningSpeed;
     public float runningAccTime;
     public float runningDecTime;
 
-    bool facingRight = true;
     float currentMaxSpeed;
     Vector3 runningDecVector;
     Vector3 speedVector;
     Vector3 runningAccVector;
+
+    bool rightWalled = false;
+    bool leftWalled = false;
 
     bool walkingTimerEnabled = false;
     float walkingTimer = 0f;
@@ -49,13 +53,11 @@ public class RigidController : MonoBehaviour
 
     [SerializeField] private LayerMask WhatIsGround;
     [SerializeField] private Transform GroundCheck;
-    [SerializeField] private Transform CeilingCheck;
     [SerializeField] private Transform LeftCheck;
     [SerializeField] private Transform RightCheck;
     Rigidbody2D rigb;
 
     const float GroundedRadius = 0.1f;
-    const float CeilingRadius = 0.05f;
     const float SideRadius = 0.05f;
 
     Collider2D oldCollider;
@@ -82,20 +84,15 @@ public class RigidController : MonoBehaviour
     void GroundTouching()
     {
         bool wasGrounded = grounded;
-        grounded = false;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(GroundCheck.position, GroundedRadius, WhatIsGround);
-        for (int i = 0; i < colliders.Length; i++)
+        grounded = newGrounded;
+        if (grounded)
         {
-            if (colliders[i].gameObject != gameObject)
+            if (!wasGrounded)
             {
-                grounded = true;
-                if (!wasGrounded)
-                {
-                    OnLandEvent.Invoke();
-                }
-
+                OnLandEvent.Invoke();
             }
         }
+
         if (!grounded)
         {
             if (rigb.angularVelocity > airRotationSpeed)
@@ -109,11 +106,31 @@ public class RigidController : MonoBehaviour
         }
     }
 
+    public void OnGroundEnter()
+    {
+        newGrounded = true;
+    }
+
+    public void OnGroundExit()
+    {
+        newGrounded = false;
+    }
+
     //moving
 
     void Movement()
     {
         rigb.velocity = new Vector3(0, rigb.velocity.y, 0);
+
+        if (grounded)
+        {
+            currentMaxSpeed = runningSpeed;
+        }
+        else
+        {
+            currentMaxSpeed = airRunningSpeed;
+        }
+
         if (keyA == keyD)
         {
 
@@ -153,11 +170,11 @@ public class RigidController : MonoBehaviour
             }
         }
 
-        if (Physics2D.OverlapCircle(LeftCheck.position, SideRadius, WhatIsGround) && speedVector.x < 0)
+        if (leftWalled && speedVector.x < 0)
         {
             speedVector = Vector3.zero;
         }
-        if (Physics2D.OverlapCircle(RightCheck.position, SideRadius, WhatIsGround) && speedVector.x > 0)
+        if (rightWalled && speedVector.x > 0)
         {
             speedVector = Vector3.zero;
         }
@@ -228,6 +245,7 @@ public class RigidController : MonoBehaviour
     //
     // collision
     //
+    
 
     void OnTriggerEnter2D(Collider2D other)
     {
@@ -249,5 +267,25 @@ public class RigidController : MonoBehaviour
     void OnTriggerExit2D(Collider2D other)
     {
         oldCollider = null;
+    }
+
+    public void OnWallEnter(bool isRight)
+    {
+        if (isRight)
+        {
+            rightWalled = true;
+            return;
+        }
+        leftWalled = true;
+    }
+
+    public void OnWallExit(bool isRight)
+    {
+        if (isRight)
+        {
+            rightWalled = false;
+            return;
+        }
+        leftWalled = false;
     }
 }
