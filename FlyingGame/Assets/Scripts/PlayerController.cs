@@ -5,6 +5,7 @@ using UnityEngine.Events;
 
 public class PlayerController : MonoBehaviour
 {
+    public GameObject cannon;
     RigidController rc;
 
     void Start()
@@ -18,4 +19,9 @@ public class PlayerController : MonoBehaviour
         rc.Walk(1, 3f);
     }
 
+    public void Update()
+    {
+        Quaternion t = transform.rotation;
+        cannon.transform.rotation = new Quaternion(-t.w,-t.x,-t.y,-t.z);
+    }
 }

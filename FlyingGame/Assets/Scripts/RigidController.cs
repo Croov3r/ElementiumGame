@@ -62,6 +62,7 @@ public class RigidController : MonoBehaviour
 
     Collider2D oldCollider;
 
+    CameraScript cam;
 
     /// ///
 
@@ -216,6 +217,7 @@ public class RigidController : MonoBehaviour
         runningAccVector = new Vector3(2 / (runningAccTime * runningAccTime), 0, 0);
         runningDecVector = new Vector3(2 / (runningDecTime * runningDecTime), 0, 0);
         currentMaxSpeed = runningSpeed;
+        cam = Camera.main.GetComponent<CameraScript>();
     }
 
     void Update()
@@ -225,11 +227,13 @@ public class RigidController : MonoBehaviour
             if (walkingTimer > 0)
             {
                 walkingTimer -= Time.deltaTime;
+                cam.playing = true;
             }
             else
             {
                 keyA = false;
                 keyD = false;
+                cam.playing = false;
             }
         }
     }
