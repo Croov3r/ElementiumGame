@@ -10,6 +10,7 @@ public class RigidController : MonoBehaviour
     GameObject Player;
 
     [Header("Jumping")]
+    [Space]
 
     public float lowTime;
     public float lowJumpHeight;
@@ -70,7 +71,6 @@ public class RigidController : MonoBehaviour
     private void Awake()
     {
         rigb = GetComponent<Rigidbody2D>();
-        //rigb.freezeRotation = true;
 
         if (OnLandEvent == null)
             OnLandEvent = new UnityEvent();
@@ -189,6 +189,7 @@ public class RigidController : MonoBehaviour
     
     public void Walk(float x, float duration = -1f)
     {
+        cam.MovePosition(transform.position);
         keyA = (x < 0f);
         keyD = (x > 0f);
         if (duration == -1f)
@@ -236,6 +237,9 @@ public class RigidController : MonoBehaviour
                 cam.playing = false;
             }
         }
+        Vector3 tp = transform.position;
+        transform.position = new Vector3(tp.x, tp.y, 0f);
+        rigb.velocity = Vector2.zero;
     }
 
     private void FixedUpdate()

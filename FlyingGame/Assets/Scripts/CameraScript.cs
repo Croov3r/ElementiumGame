@@ -13,6 +13,14 @@ public class CameraScript : MonoBehaviour
     public float minZoom;
     public float maxZoom;
 
+    Vector3 nowPos;
+    float timer;
+    float endTime;
+    float nowZoom;
+
+    bool toNewPlayer = false;
+    
+
     public void PositionCam()
     {
         float numX = 0f;
@@ -52,6 +60,20 @@ public class CameraScript : MonoBehaviour
         transform.position = new Vector3(numX + xOffset, transform.position.y, transform.position.z);
     }
 
+    public void MovePosition(Vector3 pos, float time = 1f)
+    {
+        if (playing)
+        {
+            return;
+        }
+        toNewPlayer = false;
+        nowPos = transform.position;
+        timer = time;
+        endTime = time;
+        nowZoom = GetComponent<Camera>().orthographicSize;
+    }
+
+
     void Start()
     {
         ph = FindObjectOfType<PlayerHandler>();
@@ -60,13 +82,17 @@ public class CameraScript : MonoBehaviour
 
     void Update()
     {
-        if (!playing)
-        {
-            return;
-        }
         player = ph.player.gameObject;
         Vector3 ptp = player.transform.position;
-        PositionCam();
-        //transform.position = new Vector3(ptp.x + xOffset, transform.position.y, transform.position.z);
+
+        if (timer > 0)
+        {
+            transform.position = (transform.position = new Vector3(ptp.x + xOffset, transform.position.y, transform.position.z) * (endTime - timer) + nowPos * timer) / endTime;
+            GetComponent<Camera>().orthographicSize = (8f * (endTime - timer) + nowZoom * timer) / endTime;
+            timer -= Time.deltaTime;
+            return;
+        }
+
+        transform.position = new Vector3(ptp.x + xOffset, transform.position.y, transform.position.z);
     }
 }
