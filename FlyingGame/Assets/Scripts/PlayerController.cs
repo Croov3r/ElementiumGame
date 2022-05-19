@@ -84,7 +84,9 @@ public class PlayerController : MonoBehaviour
     {
         GameObject clone = GameObject.Instantiate(bullet);
         BulletScript script = clone.GetComponent<BulletScript>();
-        script.Set(cannon.transform.position, realRotation, strength);
+        Vector3 difference = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position);
+        difference.Normalize();
+        script.Set(cannon.transform.position + 0.5f*difference, realRotation, strength);
     }
 
     void Start()
@@ -137,7 +139,7 @@ public class PlayerController : MonoBehaviour
         if (cannonLockTimer > 0)
 		{
             cannonLockTimer += Time.deltaTime;
-            if (cannonLockTimer > 0.1f)
+            if (cannonLockTimer > 0.05f)
 			{
                 if (cannonFired)
                 {

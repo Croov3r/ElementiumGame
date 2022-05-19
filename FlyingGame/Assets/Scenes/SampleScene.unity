@@ -573,6 +573,7 @@ GameObject:
   - component: {fileID: 704625599}
   - component: {fileID: 704625598}
   - component: {fileID: 704625600}
+  - component: {fileID: 704625601}
   m_Layer: 0
   m_Name: Hoop
   m_TagString: Untagged
@@ -671,6 +672,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.20061743, y: 0.017557502}
   m_EdgeRadius: 0
+--- !u!114 &704625601
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 704625597}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46bbb70cb2e61024c804f83f8a1f23e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &834069435
 GameObject:
   m_ObjectHideFlags: 0
@@ -1139,11 +1152,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4016677413080515878, guid: 29d06a2432b957445937ff1a55adf270, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -11.26
+      value: 9.5
       objectReference: {fileID: 0}
     - target: {fileID: 4016677413080515878, guid: 29d06a2432b957445937ff1a55adf270, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -4.57
+      value: 5.26
       objectReference: {fileID: 0}
     - target: {fileID: 4016677413080515878, guid: 29d06a2432b957445937ff1a55adf270, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1180,6 +1193,10 @@ PrefabInstance:
     - target: {fileID: 8271758716088332961, guid: 29d06a2432b957445937ff1a55adf270, type: 3}
       propertyPath: m_Name
       value: Bullet
+      objectReference: {fileID: 0}
+    - target: {fileID: 8963712684662323821, guid: 29d06a2432b957445937ff1a55adf270, type: 3}
+      propertyPath: m_Simulated
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 29d06a2432b957445937ff1a55adf270, type: 3}
