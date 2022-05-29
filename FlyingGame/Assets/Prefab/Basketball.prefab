@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4679924961803203916}
   - component: {fileID: 8963712684662323821}
   m_Layer: 6
-  m_Name: Bullet
+  m_Name: Basketball
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -100,9 +100,13 @@ MonoBehaviour:
   angle: 45
   speed: 40
   time: 0
-  timeSpeed: 3
+  timeSpeed: 2
+  maxLyingTime: 5
+  velocity: {x: 0, y: 0, z: 0}
   position: {x: 0, y: 0, z: 0}
   realVelocity: {x: 1, y: 1, z: 0}
+  floorHeight: -4.585
+  bouncyness: 0.8
 --- !u!58 &4679924961803203916
 CircleCollider2D:
   m_ObjectHideFlags: 0

@@ -8,18 +8,11 @@ public class CameraScript : MonoBehaviour
     PlayerHandler ph;
     public List<GameObject> allplayers;
     public float xOffset;
-    public bool playing;
-
-    public float minZoom;
-    public float maxZoom;
 
     Vector3 nowPos;
     float timer;
     float endTime;
     float nowZoom;
-
-    bool toNewPlayer = false;
-    
 
     public void PositionCam()
     {
@@ -55,22 +48,14 @@ public class CameraScript : MonoBehaviour
         numX /= allplayers.Count;
         numY /= allplayers.Count;
 
-        GetComponent<Camera>().orthographicSize = Mathf.Min(maxZoom,Mathf.Max(minZoom, (maxX - minX + 4) / (16f / 9f * 2f), (maxY - minY + 4) / 2f));
-
-        transform.position = new Vector3(numX + xOffset, transform.position.y, transform.position.z);
+        transform.position = new Vector3(Mathf.Max(-17.77778f, Mathf.Min(17.77778f, numX + xOffset)), transform.position.y, transform.position.z);
     }
 
     public void MovePosition(Vector3 pos, float time = 1f)
     {
-        if (playing)
-        {
-            return;
-        }
-        toNewPlayer = false;
         nowPos = transform.position;
         timer = time;
         endTime = time;
-        nowZoom = GetComponent<Camera>().orthographicSize;
     }
 
 
@@ -87,12 +72,12 @@ public class CameraScript : MonoBehaviour
 
         if (timer > 0)
         {
-            transform.position = (transform.position = new Vector3(ptp.x + xOffset, transform.position.y, transform.position.z) * (endTime - timer) + nowPos * timer) / endTime;
-            GetComponent<Camera>().orthographicSize = (8f * (endTime - timer) + nowZoom * timer) / endTime;
+            Vector3 vec = (new Vector3(ptp.x + xOffset, transform.position.y, transform.position.z) * (endTime - timer) + nowPos * timer) / endTime;
+            transform.position = new Vector3(Mathf.Max(-17.77778f, Mathf.Min(17.77778f, vec.x)), vec.y, vec.z);
             timer -= Time.deltaTime;
             return;
         }
 
-        transform.position = new Vector3(ptp.x + xOffset, transform.position.y, transform.position.z);
+        transform.position = new Vector3(Mathf.Max(-17.77778f, Mathf.Min(17.77778f, ptp.x + xOffset)), transform.position.y, transform.position.z);
     }
 }

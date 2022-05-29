@@ -17,33 +17,15 @@ public class PlayerController : MonoBehaviour
     bool cannonLocked = false;
     float cannonLockTimer = 0f;
     bool cannonFired = false;
+    public float maxStrength = 20f;
+
+    public GameObject ball;
+    bool holdingBall = false;
 
 
     PlayerHandler ph;
     CameraScript cam;
     RigidController rc;
-
-    public static float arg(float x, float y)
-	{
-        if ((y >= 0) && (x >= 0))
-		{
-            return Mathf.Atan(Mathf.Abs(y) / Mathf.Abs(x)) * 180 / Mathf.PI;
-        }
-        else if ((y >= 0) && (x <= 0))
-		{
-            return 1 * 90 + Mathf.Atan(Mathf.Abs(x) / Mathf.Abs(y)) * 180 / Mathf.PI;
-        }
-        else if ((y <= 0) && (x <= 0))
-        {
-            return 2 * 90 + Mathf.Atan(Mathf.Abs(y) / Mathf.Abs(x)) * 180 / Mathf.PI;
-        }
-        return 3 * 90 + Mathf.Atan(Mathf.Abs(x) / Mathf.Abs(y)) * 180 / Mathf.PI;
-    }
-
-    public void WalkABit()
-    {
-        rc.Walk(1, 3f);
-    }
 
     public void Button() 
     {
@@ -60,33 +42,43 @@ public class PlayerController : MonoBehaviour
         }
         Vector3 difference = Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position;
         difference = new Vector3(difference.x, difference.y, 0f);
-        strength = Mathf.Min(difference.magnitude/(3f * Mathf.Sqrt(bulletPointDistance) * 0.316228f),20f);
+        strength = Mathf.Min(difference.magnitude/(3f * Mathf.Sqrt(bulletPointDistance) * 0.316228f), maxStrength);
         cannonRotation = -Mathf.Atan(difference.y / difference.x)*180/Mathf.PI + 90f;
-        realRotation = arg(difference.x, difference.y);
+        realRotation = MyMathf.Arg(difference);
         BulletPoints();
     }
 
     void BulletPoints()
 	{
+        Vector3 difference = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position);
+        difference.Normalize();
+
         if (cannonLocked)
 		{
             return;
 		}
+
         Vector3 velocity = new Vector3(Mathf.Cos(realRotation / 180 * Mathf.PI), Mathf.Sin(realRotation / 180 * Mathf.PI), 0f) * strength;
         for (int i = 0; i < bulletPoints.Count; i++)
 		{
             float t = (i+1) * bulletPointDistance;
-            bulletPoints[i].transform.position = 0.5f * new Vector3(0, -9.8f, 0) * t * t + velocity * t + cannon.transform.position;
+            bulletPoints[i].transform.position = 0.5f * new Vector3(0, -9.8f, 0) * t * t + velocity * t + cannon.transform.position + 0.5f * difference;
         }
     }
 
     public void Shoot()
     {
-        GameObject clone = GameObject.Instantiate(bullet);
-        BulletScript script = clone.GetComponent<BulletScript>();
+        if (!holdingBall)
+		{
+            return;
+		}
+
+        BulletScript script = ball.GetComponent<BulletScript>();
         Vector3 difference = (Camera.main.ScreenToWorldPoint(Input.mousePosition) - transform.position);
         difference.Normalize();
         script.Set(cannon.transform.position + 0.5f*difference, realRotation, strength);
+
+        holdingBall = false;
     }
 
     void Start()
@@ -102,24 +94,17 @@ public class PlayerController : MonoBehaviour
 
         foreach (GameObject bp in bulletPoints)
         {
-            bp.SetActive(act && !(cam.playing));
+            bp.SetActive(act);
         }
 
         if (!act)
-		{
+        {
+            rc.keyA = false;
+            rc.keyD = false;
             return;
 		}
-
-        //When active
 
         PointTowards();
-
-		if (cam.playing)
-		{
-            return;
-		}
-
-        //When not playing
 
 
     }
@@ -152,6 +137,31 @@ public class PlayerController : MonoBehaviour
                 cannonLockTimer = 0;
             }
 		}
+        
+        if ((!activated) && holdingBall)
+		{
+            ball.GetComponent<BulletScript>().Drop();
+            holdingBall = false;
+		}
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (!activated)
+			{
+                return;
+			}
+            if (holdingBall)
+			{
+                Shoot();
+                return;
+			}
+            if ((transform.position - ball.transform.position).magnitude < 2f)
+            {
+                holdingBall = true;
+                ball.GetComponent<BulletScript>().StickTo(gameObject);
+            }
+        }
+
     }
 
     void OnMouseOver()

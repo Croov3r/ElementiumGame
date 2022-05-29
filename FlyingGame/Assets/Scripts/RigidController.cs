@@ -6,8 +6,7 @@ using UnityEngine.Events;
 public class RigidController : MonoBehaviour
 {
     [Header("Character")]
-    public float lifes;
-    GameObject Player;
+    GameObject player;
 
     [Header("Jumping")]
     [Space]
@@ -38,16 +37,15 @@ public class RigidController : MonoBehaviour
     bool rightWalled = false;
     bool leftWalled = false;
 
-    bool walkingTimerEnabled = false;
-    float walkingTimer = 0f;
-
     [Header("Events")]
     [Space]
 
     public UnityEvent OnLandEvent;
 
-    bool keyA = false;
-    bool keyD = false;
+    [HideInInspector]
+    public bool keyA = false;
+    [HideInInspector]
+    public bool keyD = false;
 
     [Header("Collision")]
     [Space]
@@ -62,8 +60,8 @@ public class RigidController : MonoBehaviour
     const float SideRadius = 0.05f;
 
     Collider2D oldCollider;
-
     CameraScript cam;
+    PlayerHandler ph;
 
     /// ///
 
@@ -184,59 +182,28 @@ public class RigidController : MonoBehaviour
     }
 
     //
-    // publics
-    //
-    
-    public void Walk(float x, float duration = -1f)
-    {
-        cam.MovePosition(transform.position);
-        keyA = (x < 0f);
-        keyD = (x > 0f);
-        if (duration == -1f)
-        {
-            walkingTimerEnabled = false;
-            return;
-        }
-        walkingTimerEnabled = true;
-        walkingTimer = duration;
-    }
-
-    public void TakeDamage(float damage)
-    {
-        lifes -= damage;
-    }
-
-
-    //
     // unities
     //
 
 
     void Start()
     {
-        Player = FindObjectOfType<PlayerController>().gameObject;
+        player = gameObject;
         runningAccVector = new Vector3(2 / (runningAccTime * runningAccTime), 0, 0);
         runningDecVector = new Vector3(2 / (runningDecTime * runningDecTime), 0, 0);
         currentMaxSpeed = runningSpeed;
         cam = Camera.main.GetComponent<CameraScript>();
+        ph = FindObjectOfType<PlayerHandler>();
     }
 
     void Update()
     {
-        if (walkingTimerEnabled)
-        {
-            if (walkingTimer > 0)
-            {
-                walkingTimer -= Time.deltaTime;
-                cam.playing = true;
-            }
-            else
-            {
-                keyA = false;
-                keyD = false;
-                cam.playing = false;
-            }
+        if (ph.player.gameObject == player)
+		{
+            keyA = Input.GetKey(KeyCode.A);
+            keyD = Input.GetKey(KeyCode.D);
         }
+
         Vector3 tp = transform.position;
         transform.position = new Vector3(tp.x, tp.y, 0f);
         rigb.velocity = Vector2.zero;
@@ -247,6 +214,7 @@ public class RigidController : MonoBehaviour
         GravityController();
         GroundTouching();
         Movement();
+        transform.rotation = Quaternion.identity;
     }
 
 
