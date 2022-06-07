@@ -14,43 +14,6 @@ public class CameraScript : MonoBehaviour
     float endTime;
     float nowZoom;
 
-    public void PositionCam()
-    {
-        float numX = 0f;
-        float numY = 0f;
-
-        float minX = 1000000f;
-        float minY = 1000000f;
-        float maxX = -1000000f;
-        float maxY = -1000000f;
-
-        foreach (GameObject go in allplayers)
-        {
-            numX += go.transform.position.x;
-            numY += go.transform.position.y;
-            if (go.transform.position.x > maxX)
-            {
-                maxX = go.transform.position.x;
-            }
-            if (go.transform.position.x < minX)
-            {
-                minX = go.transform.position.x;
-            }
-            if (go.transform.position.y > maxY)
-            {
-                maxY = go.transform.position.y;
-            }
-            if (go.transform.position.y < minY)
-            {
-                minY = go.transform.position.y;
-            }
-        }
-        numX /= allplayers.Count;
-        numY /= allplayers.Count;
-
-        transform.position = new Vector3(Mathf.Max(-17.77778f, Mathf.Min(17.77778f, numX + xOffset)), transform.position.y, transform.position.z);
-    }
-
     public void MovePosition(Vector3 pos, float time = 1f)
     {
         nowPos = transform.position;
@@ -58,11 +21,10 @@ public class CameraScript : MonoBehaviour
         endTime = time;
     }
 
-
     void Start()
     {
         ph = FindObjectOfType<PlayerHandler>();
-        PositionCam();
+        transform.position = new Vector3(-3,0, -10);
     }
 
     void Update()

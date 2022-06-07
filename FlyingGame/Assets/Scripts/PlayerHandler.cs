@@ -7,7 +7,7 @@ public class PlayerHandler : MonoBehaviour
     public List<GameObject> allplayers;
     public PlayerController player;
     public GameObject ball;
-    CameraScript cam;
+    public CameraScript cam;
 
     public void Button()
 	{
